@@ -18,96 +18,82 @@ exports.index = (req, res) => {
   });
 };
 
-// exports.category_create_get = function (req, res, next) {
-//   async.parallel(
-//     {
-//       categories(callback) {
-//         Category.find(callback);
-//       },
-//     },
-//     (err, results) => {
-//       if (err) {
-//         return next(err);
-//       }
-//       res.render("category_form", {
-//         title: "Create Category",
-//         categories: results.categories,
-//       });
-//     }
-//   );
-// }
-// exports.category_create_post = [
-//   // Validate and sanitize fields.
-//   body("categoryName", "Category name must not be empty.")
-//     .trim()
-//     .isLength({ min: 1 })
-//     .escape(),
-//   body("categoryName")
-//     .trim()
-//     .custom((val, {req}) => {
-//       return new Promise((res, rej) => {
-//         Category.findOne({name: req.body.categoryName}, function(err, name) {
-//             if (err) {
-//               rej(new Error('Server Error'));
-//             }
-//             if (Boolean(name)) {
-//               rej(new Error(`${req.body.categoryName} already exists.`));
-//             }
+exports.message_create_get = function (req, res, next) {
+  async.parallel(
+    {
+      messages(callback) {
+        Message.find(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      }
+      res.render("message_form", {
+        title: "Create Message",
+        messages: results.messages,
+      });
+    }
+  );
+}
+exports.message_create_post = [
+  // Validate and sanitize fields.
+  body("title", "Title must not be empty.")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  body("text", "Message text must not be empty.")
+  .trim()
+  .isLength({ min: 1 })
+  .escape(),
 
-//             res(true);
-//         });
-//       });
-//     }),
-//   body("categoryDescription", "Category description must not be empty.")
-//   .trim()
-//   .isLength({ min: 1 })
-//   .escape(),
+  // Process request after validation and sanitization.
+  (req, res, next) => {
+    // Extract the validation errors from a request.
+    const errors = validationResult(req);
 
-//   // Process request after validation and sanitization.
-//   (req, res, next) => {
-//     // Extract the validation errors from a request.
-//     const errors = validationResult(req);
+    // Create a Message object.
+    const message = new Message({
+      title: req.body.title,
+      text: req.body.text,
+      // get logged in user's member._id
+      author: '63a1e41fafe2da25f07d9427'
+    });
 
-//     // Create a Category object.
-//     const category = new Category({
-//       name: req.body.categoryName,
-//       description: req.body.categoryDescription,
-//     });
+    if (!errors.isEmpty()) {
+      // There are errors. Render form again with sanitized values/error messages.
 
-//     if (!errors.isEmpty()) {
-//       // There are errors. Render form again with sanitized values/error messages.
+      async.parallel(
+        {
+          messages(callback) {
+            Message.find(callback);
+          },
+        },
+        (err, results) => {
+          if (err) {
+            return next(err);
+          }
 
-//       async.parallel(
-//         {
-//           categories(callback) {
-//             Category.find(callback);
-//           },
-//         },
-//         (err, results) => {
-//           if (err) {
-//             return next(err);
-//           }
+          res.render("message_form", {
+            title: "Create Message",
+            message,
+            errors: errors.array(),
+          });
+        }
+      );
+      return;
+    }
 
-//           res.render("category_form", {
-//             title: "Create Category",
-//             category,
-//             errors: errors.array(),
-//           });
-//         }
-//       );
-//       return;
-//     }
-
-//     // Data from form is valid. Save category.
-//     category.save((err) => {
-//       if (err) {
-//         return next(err);
-//       }
-//       // Successful: redirect to new category record.
-//       res.redirect(`${category.url}`);
-//     });
-//   },
-// ];
+    // Data from form is valid. Save category.
+    message.save((err) => {
+      if (err) {
+        return next(err);
+      }
+      // Successful: redirect to home page.
+      res.redirect(`/`);
+    });
+  },
+];
 
 // exports.category_update_get = function (req, res, next) {
 //   async.parallel(

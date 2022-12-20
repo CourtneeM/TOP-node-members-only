@@ -7,9 +7,9 @@ const messages_controller = require('../controllers/messages');
 router.get('/', messages_controller.index);
 
 /* GET and POST create message page  */
-// router.get('/create', messages_controller.message_create_get);
+router.get('/create', messages_controller.message_create_get);
 
-// router.post('/create', messages_controller.message_create_post);
+router.post('/create', messages_controller.message_create_post);
 
 // /* GET and POST update message page */
 // router.get('/:id/:title/update', messages_controller.message_update_get);
