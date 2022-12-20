@@ -7,5 +7,15 @@
   <body>
     <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
+    <ul>
+      <% messages.map((message) => { %>
+        <li>
+          <p><%= message.title %></p>
+          <p><%= message.text %></p>
+          <p><%= message.author.first_name %> <%= message.author.last_name %></p>
+          <p><%= message.timestamp %></p>
+        </li>
+      <% }) %>
+    </ul>
   </body>
 </html>

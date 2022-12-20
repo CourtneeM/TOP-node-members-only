@@ -1,8 +1,10 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+
+const members_controller = require('../controllers/members');
 
 /* GET home page. */
-// router.get('/members', members_controller.index);
+router.get('/members', members_controller.index);
 
 // /* GET and POST create message page  */
 // router.get('/members/create', members_controller.member_create_get);

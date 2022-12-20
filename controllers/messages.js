@@ -7,10 +7,12 @@ const { body, validationResult } = require('express-validator');
 exports.index = (req, res) => {
   Message.find({})
     .sort({ title: 1 })
+    .populate('author')
     .exec(function (err, messages) {
       if (err) {
         return next(err);
       }
+
       //Successful, so render
       res.render("index", { title: "Member Messages", messages: messages });
   });
