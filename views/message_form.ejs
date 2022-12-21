@@ -1,13 +1,17 @@
-<h1>Create Message</h1>
+<h1><%= title %></h1>
 <form action="" method="POST">
   <div class="form-group">
     <label for="title">Title</label>
-    <input type="text" name="title" id="title">
+    <input type="text" name="title" id="title" value="<%= typeof message !== 'undefined' ? message.title : null %>">
   </div>
   <div class="form-group">
     <label for="text">Message Text</label>
-    <input type="text" name="text" id="text">
+    <input type="text" name="text" id="text" value="<%= typeof message !== 'undefined' ? message.text : null %>">
   </div>
 
   <input type="submit" value="Submit">
 </form>
+
+<% if (typeof message !== 'undefined') { %>
+  <button><a href="/<%= message._id %>/delete">Delete Message</a></button>
+<% } %>

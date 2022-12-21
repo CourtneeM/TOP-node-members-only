@@ -15,6 +15,7 @@
           <p><%= message.text %></p>
           <p><%= message.author.first_name %> <%= message.author.last_name %></p>
           <p><%= message.timestamp %></p>
+          <button><a href="/<%= message._id %>/edit">Edit</a></button>
         </li>
       <% }) %>
     </ul>
