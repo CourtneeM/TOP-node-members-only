@@ -13,7 +13,7 @@ const MemberSchema = new Schema({
 
 // Virtual for item's URL
 MemberSchema.virtual("url").get(function () {
-  return `/members/${this._id}`;
+  return `/${this.membership_status ? 'member' : 'account'}/${this._id}`;
 });
 
 // Export model

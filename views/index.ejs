@@ -7,13 +7,19 @@
   <body>
     <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
+    <button><a href="/account/create">Create Account</a></button>
+    <button><a href="/accounts">View Accounts</a></button>
+    <button><a href="/members">View Members</a></button>
+    <button><a href="/member/63a1e41fafe2da25f07d9427">View Profile</a></button>
     <button><a href="/create">Create Message</a></button>
     <ul>
       <% messages.map((message) => { %>
         <li>
           <p><%= message.title %></p>
           <p><%= message.text %></p>
-          <p><%= message.author.first_name %> <%= message.author.last_name %></p>
+          <p>
+            <%= message.author === null ? "Author Deleted" : `${message.author.first_name} ${message.author.last_name}` %>
+          </p>
           <p><%= message.timestamp %></p>
           <button><a href="/<%= message._id %>/edit">Edit</a></button>
         </li>

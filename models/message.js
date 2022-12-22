@@ -8,7 +8,7 @@ const createdAt = () => dateFormat(new Date(), "ddd, mmm dd yyyy h:MM:ss TT UTC"
 const MessageSchema = new Schema({
   title: { type: String, required: true },
   text: { type: String, required: true },
-  author: { type: Schema.Types.ObjectId, ref: "Member", required: true },
+  author: { type: Schema.Types.ObjectId, ref: "Member" },
   timestamp: { type: String, default: createdAt, required: true},
 });
 

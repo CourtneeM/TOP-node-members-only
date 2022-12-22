@@ -5,7 +5,7 @@ const async = require("async");
 const { body, validationResult } = require('express-validator');
 
 exports.index = (req, res) => {
-  Member.find({})
+  Member.find({membership_status: true})
     .sort({ last_name: 1 })
     .exec(function (err, members) {
       if (err) {
@@ -13,276 +13,169 @@ exports.index = (req, res) => {
       }
 
       //Successful, so render
-      res.render("members_list", { title: "Members", members });
+      res.render("members_list", {
+        title: "Members",
+        members,
+      });
   });
 };
 
-// exports.category_create_get = function (req, res, next) {
-//   async.parallel(
-//     {
-//       categories(callback) {
-//         Category.find(callback);
-//       },
-//     },
-//     (err, results) => {
-//       if (err) {
-//         return next(err);
-//       }
-//       res.render("category_form", {
-//         title: "Create Category",
-//         categories: results.categories,
-//       });
-//     }
-//   );
-// }
-// exports.category_create_post = [
-//   // Validate and sanitize fields.
-//   body("categoryName", "Category name must not be empty.")
-//     .trim()
-//     .isLength({ min: 1 })
-//     .escape(),
-//   body("categoryName")
-//     .trim()
-//     .custom((val, {req}) => {
-//       return new Promise((res, rej) => {
-//         Category.findOne({name: req.body.categoryName}, function(err, name) {
-//             if (err) {
-//               rej(new Error('Server Error'));
-//             }
-//             if (Boolean(name)) {
-//               rej(new Error(`${req.body.categoryName} already exists.`));
-//             }
+exports.member_get = function (req, res, next) {
+  async.parallel(
+    {
+      member(callback) {
+        Member.findOne({_id: req.params.id})
+          .exec(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      }
+      res.render("member_profile", {
+        title: `${results.member.first_name} ${results.member.last_name}`,
+        member: results.member,
+        listType: 'member',
+      });
+    }
+  );
+}
 
-//             res(true);
-//         });
-//       });
-//     }),
-//   body("categoryDescription", "Category description must not be empty.")
-//   .trim()
-//   .isLength({ min: 1 })
-//   .escape(),
+exports.member_update_get = function (req, res, next) {
+  async.parallel(
+    {
+      member(callback) {
+        Member.findOne({_id: req.params.id})
+          .exec(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      }
 
-//   // Process request after validation and sanitization.
-//   (req, res, next) => {
-//     // Extract the validation errors from a request.
-//     const errors = validationResult(req);
+      res.render("member_update", {
+        title: `Update ${results.member.first_name} ${results.member.last_name}`,
+        member: results.member,
+        listType: 'member',
+      });
+    }
+  );
+}
+exports.member_update_post = [
+  // Validate and sanitize fields.
+  body("firstName", "First name must not be empty.")
+  .trim()
+  .isLength({ min: 1 })
+  .escape(),
+  body("lastName", "Last name must not be empty.")
+  .trim()
+  .isLength({ min: 1 })
+  .escape(),
+  body("username", "Username must not be empty.")
+  .trim()
+  .isLength({ min: 1 })
+  .escape(),
 
-//     // Create a Category object.
-//     const category = new Category({
-//       name: req.body.categoryName,
-//       description: req.body.categoryDescription,
-//     });
+  // Process request after validation and sanitization.
+  (req, res, next) => {
+    // Extract the validation errors from a request.
+    const errors = validationResult(req);
 
-//     if (!errors.isEmpty()) {
-//       // There are errors. Render form again with sanitized values/error messages.
+    // Create a Member object.
+    const member = new Member({
+      first_name: req.body.firstName,
+      last_name: req.body.lastName,
+      username: req.body.username,
+      membership_status: req.body.membershipStatus,
+      is_admin: req.body.isAdmin,
+      _id: req.params.id, //This is required, or a new ID will be assigned!
+    });
 
-//       async.parallel(
-//         {
-//           categories(callback) {
-//             Category.find(callback);
-//           },
-//         },
-//         (err, results) => {
-//           if (err) {
-//             return next(err);
-//           }
+    if (!errors.isEmpty()) {
+      // There are errors. Render form again with sanitized values/error messages.
 
-//           res.render("category_form", {
-//             title: "Create Category",
-//             category,
-//             errors: errors.array(),
-//           });
-//         }
-//       );
-//       return;
-//     }
+      async.parallel(
+        {
+          members(callback) {
+            Member.find(callback);
+          },
+        },
+        (err, results) => {
+          if (err) {
+            return next(err);
+          }
 
-//     // Data from form is valid. Save category.
-//     category.save((err) => {
-//       if (err) {
-//         return next(err);
-//       }
-//       // Successful: redirect to new category record.
-//       res.redirect(`${category.url}`);
-//     });
-//   },
-// ];
+          res.render("member_update", {
+            title: `Update ${member.first_name} ${member.last_name}`,
+            member,
+            listType: 'member',
+            errors: errors.array(),
+          });
+        }
+      );
+      return;
+    }
 
-// exports.category_update_get = function (req, res, next) {
-//   async.parallel(
-//     {
-//       category(callback) {
-//         Category.findOne({name: req.params.category})
-//           .exec(callback);
-//       },
-//     },
-//     (err, results) => {
-//       if (err) {
-//         return next(err);
-//       }
+    // Data from form is valid. Update the record.
+    Member.findOneAndUpdate({_id: req.params.id}, member, {}, (err, themember) => {
+      if (err) {
+        return next(err);
+      }
+      // Successful: redirect to new member record.
+      res.redirect(`/member/${req.params.id}`);
+    });
+  },
+];
 
-//       res.render("category_form", {
-//         title: `Update ${results.category.name}`,
-//         category: results.category,
-//       });
-//     }
-//   );
-// }
-// exports.category_update_post = [
-//   // Validate and sanitize fields.
-//   body("categoryName", "Category name must not be empty.")
-//   .trim()
-//   .isLength({ min: 1 })
-//   .escape(),
-//   body("categoryName")
-//   .trim()
-//   .custom((val, {req}) => {
-//     return new Promise((res, rej) => {
-//       Category.findOne({name: req.body.categoryName}, function(err, category) {
-//           if (err) {
-//             rej(new Error('Server Error'));
-//           }
+exports.member_delete_get = function (req, res, next) {
+  async.parallel(
+    {
+      member(callback) {
+        Member.findOne({_id: req.params.id})
+          .exec(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      }
+      if (results.member == null) {
+        // No results.
+        res.redirect("/members");
+      }
+      // Successful, so render.
+      res.render("member_delete", {
+        title: `Delete ${results.member.first_name} ${results.member.last_name}`,
+        member: results.member,
+        listType: 'member',
+      });
+    }
+  );
+}
+exports.member_delete_post = function (req, res, next) {
+  async.parallel(
+    {
+      member(callback) {
+        Member.findOne({_id: req.params.id})
+          .exec(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      }
 
-//           if (req.params.category !== req.body.categoryName) {
-//             if (Boolean(category)) {
-//               rej(new Error(`${req.body.categoryName} already exists.`));
-//             }
-//           }
+      // Success
+      // Delete object and redirect to the list of categories.
 
-//           res(true);
-//       });
-//     });
-//   }),
-//   body("categoryDescription", "Category description must not be empty.")
-//   .trim()
-//   .isLength({ min: 1 })
-//   .escape(),
-
-//   // Process request after validation and sanitization.
-//   (req, res, next) => {
-//     // Extract the validation errors from a request.
-//     const errors = validationResult(req);
-
-//     // Create a Category object.
-//     const category = new Category({
-//       name: req.body.categoryName,
-//       description: req.body.categoryDescription,
-//       _id: req.body.categoryId, //This is required, or a new ID will be assigned!
-//     });
-
-//     if (!errors.isEmpty()) {
-//       // There are errors. Render form again with sanitized values/error messages.
-
-//       async.parallel(
-//         {
-//           categories(callback) {
-//             Category.find(callback);
-//           },
-//         },
-//         (err, results) => {
-//           if (err) {
-//             return next(err);
-//           }
-
-//           res.render("category_form", {
-//             title: "Create Category",
-//             category,
-//             errors: errors.array(),
-//           });
-//         }
-//       );
-//       return;
-//     }
-
-//     // Data from form is valid. Update the record.
-//     Category.findOneAndUpdate({name: req.params.category}, category, {}, (err, thecategory) => {
-//       if (err) {
-//         return next(err);
-//       }
-//       // Successful: redirect to new category record.
-//       res.redirect(`${thecategory.url}`);
-//     });
-//   },
-// ];
-
-// exports.category_delete_get = function (req, res, next) {
-//   async.parallel(
-//     {
-//       category(callback) {
-//         Category.findOne({name: req.params.category}).exec(callback);
-//       },
-//     },
-//     (err, results) => {
-//       if (err) {
-//         return next(err);
-//       }
-//       if (results.category == null) {
-//         // No results.
-//         res.redirect("/categories");
-//       }
-//       // Successful, so render.
-//       res.render("category_delete", {
-//         title: `Delete ${results.category.name}`,
-//         category: results.category,
-//       });
-//     }
-//   );
-// }
-// exports.category_delete_post = function (req, res, next) {
-//   async.parallel(
-//     {
-//       category(callback) {
-//         Category.findOne({name: req.body.categoryName}).exec(callback);
-//       },
-//       items(callback) {
-//         Item.find({category: req.body.categoryId})
-//           .exec(callback);
-//       }
-//     },
-//     (err, results) => {
-//       if (err) {
-//         return next(err);
-//       }
-      
-//       // Success
-//       if (results.items.filter((item) => item.category).length > 0) {
-//         // Category has items. Render in same way as for GET route.
-//         res.render("category_delete", {
-//           title: `Delete ${results.category.name}`,
-//           category: results.category,
-//         });
-//         return;
-//       }
-//       // Delete object and redirect to the list of categories.
-//       Category.deleteOne(results.category, (err) => {
-//         if (err) {
-//           return next(err);
-//         }
-//         // Success - go to category list
-//         res.redirect("/categories");
-//       });
-//     }
-//   );
-// }
-
-// exports.item_list = function (req, res, next) {
-//   Item.find({}, "name description category price num_in_stock")
-//     .sort({ name: 1 })
-//     .populate("category")
-//     .exec(function (err, list_items) {
-//       if (err) {
-//         return next(err);
-//       }
-
-//       Category.findOne({name: req.params.category})
-//         .exec(function (err, results) { 
-//           if (err) {
-//             return next(err);
-//           }
-          
-//           const filteredListItems = list_items.filter((item) => item.category.name == req.params.category);
-//           //Successful, so render
-//           res.render("item_list", { category: results, item_list: filteredListItems });
-//       });
-//   });
-// }
+      Member.deleteOne(results.member, (err) => {
+        if (err) {
+          return next(err);
+        }
+        // Success - go to category list
+        res.redirect("/members");
+      });
+    }
+  );
+}

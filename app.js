@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const indexRouter = require('./routes/index');
+const accountsRouter = require('./routes/accounts');
 const membersRouter = require('./routes/members');
 const messagesRouter = require('./routes/messages');
 
@@ -27,6 +28,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+indexRouter.use(accountsRouter);
 indexRouter.use(membersRouter);
 indexRouter.use(messagesRouter);
 

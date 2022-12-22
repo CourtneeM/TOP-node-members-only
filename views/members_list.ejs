@@ -1,4 +1,4 @@
-<h1>Members</h1>
+<h1><%= title %></h1>
 
 <ul>
   <% members.map((member) => { %>
@@ -6,6 +6,9 @@
       <%= member.first_name %> 
       <%= member.last_name %> 
       <%= member.is_admin ? '(Admin)' : null %>
+      <button><a href="<%= member.url %>">View</a></button>
     </li>
   <% }) %>
 </ul>
+
+<button><a href="/">Back</a></button>

@@ -9,8 +9,10 @@
     <input type="text" name="text" id="text" value="<%= typeof message !== 'undefined' ? message.text : null %>">
   </div>
 
+  <button><a href="/">Back</a></button>
   <input type="submit" value="Submit">
 </form>
+
 
 <% if (typeof message !== 'undefined') { %>
   <button><a href="/<%= message._id %>/delete">Delete Message</a></button>

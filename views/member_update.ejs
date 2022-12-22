@@ -1,0 +1,35 @@
+<h1><%= title %></h1>
+<p><%= member.membership_status ? 'Member' : 'Not a member' %> <%= member.is_admin ? '| Admin' : null %></p>
+<form action="" method="POST">
+  <div class="form-group">
+    <label for="firstName">First Name</label>
+    <input type="text" name="firstName" id="firstName" value="<%= member.first_name %>" required="true">
+  </div>
+  <div class="form-group">
+    <label for="lastName">Last Name</label>
+    <input type="text" name="lastName" id="lastName" value="<%= member.last_name %>" required="true">
+  </div>
+  <div class="form-group">
+    <label for="username">Username</label>
+    <input type="text" name="username" id="username" value="<%= member.username %>" required="true">
+  </div>
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input type="text" name="password" id="password">
+  </div>
+  <div class="form-group">
+    <label for="confirmPassword">Confirm Password</label>
+    <input type="text" name="confirmPassword" id="confirmPassword">
+  </div>
+  <div class="form-group">
+    <input type="hidden" name="membershipStatus" id="membershipStatus" value="<%= member.membership_status %>">
+  </div>
+  <div class="form-group">
+    <input type="hidden" name="isAdmin" id="isAdmin" value="<%= member.is_admin %>">
+  </div>
+
+  <button><a href="/<%= listType %>/<%= member._id %>">Back</a></button>
+  <input type="submit" value="Submit">
+</form>
+
+<button><a href="/<%= listType %>/<%= member._id %>/delete">Delete Account</a></button>

@@ -131,7 +131,7 @@ exports.message_edit_post = [
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
-    // Create a Category object.
+    // Create a Message object.
     const message = new Message({
       title: req.body.title,
       text: req.body.text,
