@@ -201,7 +201,7 @@ exports.account_update_post = [
       first_name: req.body.firstName,
       last_name: req.body.lastName,
       username: req.body.username,
-      membership_status: req.body.membershipStatus,
+      membership_status: req.body.memberPassword === process.env.MEMBER_PASSWORD,
       is_admin: req.body.isAdmin,
       _id: req.params.id, //This is required, or a new ID will be assigned!
     });
@@ -237,7 +237,7 @@ exports.account_update_post = [
         return next(err);
       }
       // Successful: redirect to new account record.
-      res.redirect(`/account/${req.params.id}`);
+      res.redirect(`${account.url}`);
     });
   },
 ];

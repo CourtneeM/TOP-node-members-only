@@ -88,7 +88,7 @@ exports.member_update_post = [
       last_name: req.body.lastName,
       username: req.body.username,
       membership_status: req.body.membershipStatus,
-      is_admin: req.body.isAdmin,
+      is_admin: req.body.adminPassword === process.env.ADMIN_PASSWORD || req.body.isAdmin,
       _id: req.params.id, //This is required, or a new ID will be assigned!
     });
 
