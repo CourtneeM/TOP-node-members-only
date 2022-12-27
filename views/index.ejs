@@ -9,10 +9,11 @@
     <p>Welcome to <%= title %></p>
     <% if (locals.currentUser) { %>
       <button><a href="/log-out">Log Out</a></button>
-      <button><a href="/<%= locals.currentUser.membershipStatus ? 'member' : 'account' %>/<%= locals.currentUser._id %>">View Profile</a></button>
+      <% console.log(locals.currentUser) %>
+      <button><a href="/<%= locals.currentUser.membership_status ? 'member' : 'account' %>/<%= locals.currentUser._id %>">View Profile</a></button>
       <button><a href="/accounts">View Accounts</a></button>
       
-      <% if (locals.currentUser.membershipStatus) { %>
+      <% if (locals.currentUser.membership_status) { %>
         <button><a href="/members">View Members</a></button>
         <button><a href="/create">Create Message</a></button>
       <% } %>
@@ -25,11 +26,16 @@
         <li>
           <p><%= message.title %></p>
           <p><%= message.text %></p>
-          <p>
-            <%= message.author === null ? "Author Deleted" : `${message.author.first_name} ${message.author.last_name}` %>
-          </p>
-          <p><%= message.timestamp %></p>
-          <button><a href="/<%= message._id %>/edit">Edit</a></button>
+          <% if (locals.currentUser && locals.currentUser.membership_status) { %>
+            <p>
+              <%= message.author === null ? "Author Deleted" : `${message.author.first_name} ${message.author.last_name}` %>
+            </p>
+            <p><%= message.timestamp %></p>
+          <% } %>
+
+          <% if (locals.currentUser && message.author && (message.author.username === locals.currentUser.username)) { %>
+            <button><a href="/<%= message._id %>/edit">Edit</a></button>
+          <% } %>
         </li>
       <% }) %>
     </ul>

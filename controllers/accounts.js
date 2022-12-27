@@ -6,6 +6,8 @@ const { body, validationResult } = require('express-validator');
 const Member = require("../models/member");
 
 exports.index = (req, res) => {
+  if (!res.locals.currentUser) res.redirect("/");
+  
   Member.find({membership_status: false})
     .sort({ last_name: 1 })
     .exec(function (err, accounts) {

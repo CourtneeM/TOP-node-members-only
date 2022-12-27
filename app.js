@@ -45,6 +45,7 @@ passport.use(
 
       bcrypt.compare(password, member.password, (err, res) => {
         if (err) return done(err);
+        console.log(password, member.password);
 
         if (res) {
           return done(null, member);

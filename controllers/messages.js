@@ -3,6 +3,8 @@ const Member = require("../models/member");
 
 const async = require("async");
 const { body, validationResult } = require('express-validator');
+const message = require("../models/message");
+const member = require("../models/member");
 
 exports.index = (req, res) => {
   Message.find({})
@@ -49,6 +51,8 @@ exports.message_create_post = [
 
   // Process request after validation and sanitization.
   (req, res, next) => {
+    if (!res.locals.currentUser) res.redirect("/");
+
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
@@ -56,8 +60,7 @@ exports.message_create_post = [
     const message = new Message({
       title: req.body.title,
       text: req.body.text,
-      // get logged in user's member._id
-      author: '63a1e41fafe2da25f07d9427'
+      author: res.locals.currentUser._id
     });
 
     if (!errors.isEmpty()) {
@@ -100,6 +103,7 @@ exports.message_edit_get = function (req, res, next) {
     {
       message(callback) {
         Message.findOne({_id: req.params.id})
+          .populate('author')
           .exec(callback);
       },
     },
@@ -108,10 +112,14 @@ exports.message_edit_get = function (req, res, next) {
         return next(err);
       }
 
-      res.render("message_form", {
-        title: "Edit Message",
-        message: results.message,
-      });
+      if (res.locals.currentUser && (results.message.author.username === res.locals.currentUser.username)) {
+        res.render("message_form", {
+          title: "Edit Message",
+          message: results.message,
+        });
+      } else {
+        res.redirect("/");
+      }
     }
   );
 }
@@ -128,6 +136,8 @@ exports.message_edit_post = [
 
   // Process request after validation and sanitization.
   (req, res, next) => {
+    if (!res.locals.currentUser) res.redirect("/");
+
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
@@ -135,8 +145,7 @@ exports.message_edit_post = [
     const message = new Message({
       title: req.body.title,
       text: req.body.text,
-      // get logged in user's member._id
-      author: '63a1e41fafe2da25f07d9427',
+      author: res.locals.currentUser._id,
       _id: req.params.id, //This is required, or a new ID will be assigned!
     });
 
@@ -179,7 +188,9 @@ exports.message_delete_get = function (req, res, next) {
   async.parallel(
     {
       message(callback) {
-        Message.findOne({_id: req.params.id}).exec(callback);
+        Message.findOne({_id: req.params.id})
+        .populate('author')
+        .exec(callback);
       },
     },
     (err, results) => {
@@ -190,15 +201,22 @@ exports.message_delete_get = function (req, res, next) {
         // No results.
         res.redirect("/");
       }
-      // Successful, so render.
-      res.render("message_delete", {
-        title: `Delete Message`,
-        message: results.message,
-      });
+
+      if (res.locals.currentUser && (results.message.author.username === res.locals.currentUser.username)) {
+        // Successful, so render.
+        res.render("message_delete", {
+          title: `Delete Message`,
+          message: results.message,
+        });
+      } else {
+        res.redirect("/");
+      }
     }
   );
 }
 exports.message_delete_post = function (req, res, next) {
+  if (!res.locals.currentUser) res.redirect("/");
+
   async.parallel(
     {
       message(callback) {

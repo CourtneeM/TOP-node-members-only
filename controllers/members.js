@@ -5,6 +5,8 @@ const async = require("async");
 const { body, validationResult } = require('express-validator');
 
 exports.index = (req, res) => {
+  if (!res.locals.currentUser) res.redirect("/");
+  
   Member.find({membership_status: true})
     .sort({ last_name: 1 })
     .exec(function (err, members) {
@@ -36,6 +38,7 @@ exports.member_get = function (req, res, next) {
       if (err) {
         return next(err);
       }
+
       res.render("member_profile", {
         title: `${results.member.first_name} ${results.member.last_name}`,
         member: results.member,
