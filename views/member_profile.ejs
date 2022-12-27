@@ -1,4 +1,21 @@
 <h1><%= title %></h1>
 
+<div class="messages-container">
+  <h2>Messages</h2>
+
+  <% if (member.membership_status) { %>
+    <ul>
+      <% messages.map((message) => { %>
+        <li>
+          <p><%= message.title %></p>
+          <p><%= message.text %></p>
+        </li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p>You need to be a member to post messages.</p>
+  <% } %>
+</div>
+
 <button><a href="/<%= listType %>s">Back</a></button>
 <button><a href="/<%= listType %>/<%= member._id %>/update">Edit Profile</a></button>

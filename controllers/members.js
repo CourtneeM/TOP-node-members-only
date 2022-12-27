@@ -27,6 +27,10 @@ exports.member_get = function (req, res, next) {
         Member.findOne({_id: req.params.id})
           .exec(callback);
       },
+      messages(callback) {
+        Message.find({author: req.params.id})
+          .exec(callback);
+      }
     },
     (err, results) => {
       if (err) {
@@ -35,6 +39,7 @@ exports.member_get = function (req, res, next) {
       res.render("member_profile", {
         title: `${results.member.first_name} ${results.member.last_name}`,
         member: results.member,
+        messages: results.messages,
         listType: 'member',
       });
     }
@@ -76,6 +81,41 @@ exports.member_update_post = [
   .trim()
   .isLength({ min: 1 })
   .escape(),
+  body("username")
+    .trim()
+    .custom((val, {req}) => {
+      return new Promise((res, rej) => {
+        Member.findOne({username: req.body.username}, function(err, member) {
+            if (err) {
+              rej(new Error('Server Error'));
+            }
+            if (req.params.id != member._id) {
+              rej(new Error(`An account for ${req.body.username} already exists.`));
+            }
+
+            res(true);
+        });
+      });
+    }),
+  body("password", "Password must not be empty.")
+  .trim()
+  .isLength({ min: 1 })
+  .escape(),
+  body("confirmPassword", "Confirm password must not be empty.")
+  .trim()
+  .isLength({ min: 1 })
+  .escape(),
+  body("confirmPassword", "Passwords do not match.")
+    .trim()
+    .custom((val, {req}) => {
+      return new Promise((res, rej) => {
+        if (req.body.password !== req.body.confirmPassword) {
+          rej(new Error(`Passwords do not match.`))
+        }
+
+        res(true);
+      });
+    }),
 
   // Process request after validation and sanitization.
   (req, res, next) => {
@@ -87,6 +127,7 @@ exports.member_update_post = [
       first_name: req.body.firstName,
       last_name: req.body.lastName,
       username: req.body.username,
+      password: req.body.password,
       membership_status: req.body.membershipStatus,
       is_admin: req.body.adminPassword === process.env.ADMIN_PASSWORD || req.body.isAdmin,
       _id: req.params.id, //This is required, or a new ID will be assigned!

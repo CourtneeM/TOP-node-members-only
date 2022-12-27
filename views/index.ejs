@@ -7,11 +7,19 @@
   <body>
     <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
-    <button><a href="/account/create">Create Account</a></button>
-    <button><a href="/accounts">View Accounts</a></button>
-    <button><a href="/members">View Members</a></button>
-    <button><a href="/member/63a1e41fafe2da25f07d9427">View Profile</a></button>
-    <button><a href="/create">Create Message</a></button>
+    <% if (locals.currentUser) { %>
+      <button><a href="/log-out">Log Out</a></button>
+      <button><a href="/<%= locals.currentUser.membershipStatus ? 'member' : 'account' %>/<%= locals.currentUser._id %>">View Profile</a></button>
+      <button><a href="/accounts">View Accounts</a></button>
+      
+      <% if (locals.currentUser.membershipStatus) { %>
+        <button><a href="/members">View Members</a></button>
+        <button><a href="/create">Create Message</a></button>
+      <% } %>
+    <% } else { %>
+      <button><a href="/account/create">Sign Up</a></button>
+      <button><a href="/log-in">Log In</a></button>
+    <% } %>
     <ul>
       <% messages.map((message) => { %>
         <li>

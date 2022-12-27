@@ -15,18 +15,21 @@
   </div>
   <div class="form-group">
     <label for="password">Password</label>
-    <input type="password" name="password" id="password">
+    <input type="password" name="password" id="password" value="<%= member.password %>" required="true">
   </div>
   <div class="form-group">
     <label for="confirmPassword">Confirm Password</label>
-    <input type="password" name="confirmPassword" id="confirmPassword">
-  </div>
-  <div class="form-group">
-    <label for="memberPassword">Member Password (optional)</label>
-    <input type="password" name="memberPassword" id="memberPassword">
+    <input type="password" name="confirmPassword" id="confirmPassword" value="<%= member.password %>" required="true">
   </div>
 
-  <% if (typeof member !== 'undefined') { %>
+  <% if (!member.membership_status) { %>
+    <div class="form-group">
+      <label for="memberPassword">Member Password (optional)</label>
+      <input type="password" name="memberPassword" id="memberPassword">
+    </div>
+  <% } %>
+
+  <% if (typeof member !== 'undefined' && member.membership_status && !member.is_admin) { %>
     <div class="form-group">
       <label for="adminPassword">Admin Password (optional)</label>
       <input type="password" name="adminPassword" id="adminPassword">

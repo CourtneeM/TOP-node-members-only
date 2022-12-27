@@ -1,7 +1,9 @@
-const Member = require("../models/member");
-
+const passport = require('passport');
+const bcrypt = require('bcrypt');
 const async = require("async");
 const { body, validationResult } = require('express-validator');
+
+const Member = require("../models/member");
 
 exports.index = (req, res) => {
   Member.find({membership_status: false})
@@ -18,6 +20,39 @@ exports.index = (req, res) => {
       });
   });
 };
+
+exports.log_in_get = function (req, res, next) {
+  async.parallel(
+    {
+      accounts(callback) {
+        Member.find(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      }
+
+      res.render("log_in", {
+        title: `Log In`,
+        accounts: results.accounts,
+      });
+    }
+  );
+}
+
+exports.log_in_post = passport.authenticate("local", {
+  successRedirect: "/",
+  failureRedirect: "/log-in",
+  failureFlash: true
+});
+
+exports.log_out_post = function (req, res) {
+  req.logout((err) => {
+    if (err) return next(err);
+    res.redirect("/");
+  });
+}
 
 exports.account_get = function (req, res, next) {
   async.parallel(
@@ -98,60 +133,60 @@ exports.account_create_post = [
   .isLength({ min: 1 })
   .escape(),
 
-  // PASSWORDS SHOULD MATCH
-  // body("password confirmPassword", "Passwords must match.")
-  // .trim()
-  // .isLength({ min: 1 })
-  // .escape(),
-
   // Process request after validation and sanitization.
-  (req, res, next) => {
+  async (req, res, next) => {
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
-    // Create a Member object.
-    const account = new Member({
-      first_name: req.body.firstName,
-      last_name: req.body.lastName,
-      username: req.body.username,
-      password: req.body.password,
-      membership_status: req.body.memberPassword === process.env.MEMBER_PASSWORD,
-      is_admin: false
-    });
+    try {
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-    if (!errors.isEmpty()) {
-      // There are errors. Render form again with sanitized values/error messages.
+      // Create a Member object.
+      const account = new Member({
+        first_name: req.body.firstName,
+        last_name: req.body.lastName,
+        username: req.body.username,
+        password: hashedPassword,
+        membership_status: req.body.memberPassword === process.env.MEMBER_PASSWORD,
+        is_admin: false
+      });
 
-      async.parallel(
-        {
-          accounts(callback) {
-            Member.find({membership_status: false})
-              .exec(callback);
+      if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/error messages.
+  
+        async.parallel(
+          {
+            accounts(callback) {
+              Member.find({membership_status: false})
+                .exec(callback);
+            },
           },
-        },
-        (err, results) => {
-          if (err) {
-            return next(err);
+          (err, results) => {
+            if (err) {
+              return next(err);
+            }
+  
+            res.render("account_form", {
+              title: "Create Account",
+              account,
+              errors: errors.array(),
+            });
           }
-
-          res.render("account_form", {
-            title: "Create Account",
-            account,
-            errors: errors.array(),
-          });
-        }
-      );
-      return;
-    }
-
-    // Data from form is valid. Save account.
-    account.save((err) => {
-      if (err) {
-        return next(err);
+        );
+        return;
       }
-      // Successful: redirect to new category record.
-      res.redirect("/");
-    });
+
+      // Data from form is valid. Save account.
+      account.save((err) => {
+        if (err) {
+          return next(err);
+        }
+        // Successful: redirect to new category record.
+        res.redirect("/");
+      });
+    } catch {
+      res.redirect('/account/create');
+    }
   },
 ];
 

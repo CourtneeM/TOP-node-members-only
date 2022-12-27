@@ -3,8 +3,15 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const passport = require('passport');
+const LocalStrategy = require("passport-local").Strategy;
+const bcrypt = require('bcrypt');
+const flash = require("express-flash");
+const session = require("express-session");
 const mongoose = require('mongoose');
 require('dotenv').config();
+
+const Member = require('./models/member');
 
 const indexRouter = require('./routes/index');
 const accountsRouter = require('./routes/accounts');
@@ -26,6 +33,49 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+passport.use(
+  new LocalStrategy((username, password, done) => {
+    Member.findOne({ username: username }, (err, member) => {
+      if (err) return done(err);
+
+      if (!member) {
+        return done(null, false, { message: 'No user with that username.' });
+      }
+
+      bcrypt.compare(password, member.password, (err, res) => {
+        if (err) return done(err);
+
+        if (res) {
+          return done(null, member);
+        } else {
+          return done(null, false, { message: 'Incorrect password' })
+        }
+      });
+    });
+  })
+)
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+  Member.findById(id, (err, user) => {
+    done(err, user);
+  });
+});
+
+app.use(flash());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use((req, res, next) => {
+  res.locals.currentUser = req.user;
+  next();
+});
 
 app.use('/', indexRouter);
 indexRouter.use(accountsRouter);
